@@ -92,8 +92,8 @@ def decide_what_to_run(config, previous):
 def initialization(sysargv):
     job_file = sysargv[1]
     job_name = os.path.basename(job_file).split(".")[0]
-
-    with open(job_file) as f:
+    
+    with open(job_file, encoding='utf-8') as f:
         config = json.load(f)
 
     validate_config(config)
@@ -106,8 +106,8 @@ def initialization(sysargv):
             config["only"] = sysargv[i + 1]
         if option == "-skip-interaction":
             config["skip-interaction"] = True
-        if option == "--without-html":
-            config["without-html"] = True
+        # if option == "--without-html":
+        #     config["without-html"] = True
 
     output_dir = config["output_dir"]
 
@@ -142,7 +142,7 @@ def initialization(sysargv):
                     config[step][key] = value
         # try and include source code
         try:
-            with open(f"steps/{step}.py") as f:
+            with open(f"steps/{step}.py", encoding='utf-8') as f:
                 config[step]["source_code"] = f.read()
         except Exception:
             print(f"Warning: could not find source code for step '{step}'")
@@ -151,7 +151,7 @@ def initialization(sysargv):
             # resolve prompt
             if "prompt" not in config.get(step):
                 file = config.get(step).get("prompt_file", "default")
-                with open(f"prompts/{step}/{file}.txt") as f:
+                with open(f"prompts/{step}/{file}.txt", encoding='utf-8') as f:
                     config[step]["prompt"] = f.read()
             # resolve model
             if "model" not in config.get(step):

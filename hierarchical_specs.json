@@ -68,11 +68,5 @@
             "sampling_num": 5000,
             "hidden_properties": {}
         }
-    },
-    {
-        "step": "hierarchical_visualization",
-        "filename": "report",
-        "dependencies": {"params": ["replacements"], "steps": ["hierarchical_aggregation"]},
-        "options": {"replacements": []}
     }
 ]

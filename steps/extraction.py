@@ -9,7 +9,7 @@ from tqdm import tqdm
 from services.category_classification import classify_args
 from services.llm import request_to_chat_openai
 from services.parse_json_list import parse_response
-from broadlistening.hierarchical_utils import update_progress # 前まではbroadlistening.utilsから呼び出していた。これでエラーになったらもとに戻す。
+from hierarchical_utils import update_progress # 前まではbroadlistening.utilsから呼び出していた。これでエラーになったらもとに戻す。
 
 COMMA_AND_SPACE_AND_RIGHT_BRACKET = re.compile(r",\s*(\])")
 

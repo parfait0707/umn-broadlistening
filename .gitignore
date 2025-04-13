@@ -1,4 +1,20 @@
-.env
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+hello.py
+
+# Virtual environments
 .venv
+
+# Environment information
+.env
+secrets.toml
 .clinerules
 .python-version
+
+# Data
+*.csv
