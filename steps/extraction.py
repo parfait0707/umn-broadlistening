@@ -7,7 +7,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from services.category_classification import classify_args
-from services.llm import request_to_chat_openai
+from services.llm import request_to_chat_llm
 from services.parse_json_list import parse_response
 from hierarchical_utils import update_progress # 前まではbroadlistening.utilsから呼び出していた。これでエラーになったらもとに戻す。
 
@@ -117,7 +117,7 @@ def extract_batch(batch, prompt, model, workers):
 #         {"role": "system", "content": prompt},
 #         {"role": "user", "content": input},
 #     ]
-#     response = request_to_chat_openai(messages=messages, model=model)
+#     response = request_to_chat_llm(messages=messages, model=model)
 #     return response
 
 
@@ -127,7 +127,7 @@ def extract_arguments(input, prompt, model, retries=1):
         {"role": "user", "content": input},
     ]
     try:
-        response = request_to_chat_openai(messages=messages, model=model, is_json=False)
+        response = request_to_chat_llm(messages=messages, model=model, is_json=False)
         items = parse_response(response)
         items = filter(None, items)  # omit empty strings
         return items

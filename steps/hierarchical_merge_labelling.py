@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-from services.llm import request_to_chat_openai
+from services.llm import request_to_chat_llm
 
 
 @dataclass
@@ -261,7 +261,7 @@ def process_merge_labelling(
         },
     ]
     try:
-        response = request_to_chat_openai(
+        response = request_to_chat_llm(
             messages=messages,
             model=config["hierarchical_merge_labelling"]["model"],
             is_json=True,

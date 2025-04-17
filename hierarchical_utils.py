@@ -130,6 +130,10 @@ def initialization(sysargv):
     if "model" not in config:
         config["model"] = "gpt-4o-mini"
 
+    # 2025/4/17に追加。初期のhierarchical-example-polis.jsonにconfigとしてis_pubcomが設定されていなかったため、運用回避でこのコードを追加。
+    if "is_pubcom" not in config:
+        config["is_pubcom"] = True # デフォルト値を True に設定
+
     # prepare configs for each jobs
     for step_spec in specs:
         step = step_spec["step"]

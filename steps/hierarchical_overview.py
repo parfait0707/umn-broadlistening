@@ -2,7 +2,7 @@
 
 import pandas as pd
 
-from services.llm import request_to_chat_openai
+from services.llm import request_to_chat_llm
 
 
 def hierarchical_overview(config):
@@ -28,7 +28,7 @@ def hierarchical_overview(config):
         input += descriptions[i] + "\n\n"
 
     messages = [{"role": "user", "content": prompt}, {"role": "user", "content": input}]
-    response = request_to_chat_openai(messages=messages, model=model)
+    response = request_to_chat_llm(messages=messages, model=model)
 
     with open(path, "w") as file:
         file.write(response)

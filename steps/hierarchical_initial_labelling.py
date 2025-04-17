@@ -5,7 +5,7 @@ from typing import TypedDict
 
 import pandas as pd
 
-from services.llm import request_to_chat_openai
+from services.llm import request_to_chat_llm
 
 
 class LabellingResult(TypedDict):
@@ -127,7 +127,7 @@ def process_initial_labelling(
         {"role": "user", "content": input},
     ]
     try:
-        response = request_to_chat_openai(messages=messages, model=model, is_json=True)
+        response = request_to_chat_llm(messages=messages, model=model, is_json=True)
         response_json = json.loads(response)
         return LabellingResult(
             cluster_id=cluster_id,

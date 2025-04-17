@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from openai import AzureOpenAI
 
 
-DOTENV_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../.env"))
+DOTENV_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.env"))
 load_dotenv(DOTENV_PATH)
 
 # check env
@@ -91,8 +91,7 @@ def request_to_gemini(
     return response.choices[0].message.content
 
 
-
-def request_to_chat_openai(
+def request_to_chat_llm(
     messages: list[dict],
     model: str = "gpt-4o",
     is_json: bool = False,
@@ -155,7 +154,7 @@ def _test():
     #     {"role": "system", "content": "英訳せよ"},
     #     {"role": "user", "content": "これはテストです"},
     # ]
-    # response = request_to_chat_openai(messages=messages, model="gpt-4o", is_json=False)
+    # response = request_to_chat_llm(messages=messages, model="gpt-4o", is_json=False)
     # print(response)
     # print(request_to_embed("Hello", "text-embedding-3-large"))
     print(request_to_azure_embed("Hello", "text-embedding-3-large"))
