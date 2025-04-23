@@ -30,5 +30,5 @@ def hierarchical_overview(config):
     messages = [{"role": "user", "content": prompt}, {"role": "user", "content": input}]
     response = request_to_chat_llm(messages=messages, model=model)
 
-    with open(path, "w") as file:
+    with open(path, "w", encoding='utf-8') as file:
         file.write(response)

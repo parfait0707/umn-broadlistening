@@ -64,13 +64,13 @@ def hierarchical_aggregation(config):
     # 属性情報のカラムは、元データに対して指定したカラムとclassificationするカテゴリを合わせたもの
     results["propertyMap"] = _build_property_map(arguments, hidden_properties_map, config)
 
-    with open(f"outputs/{config['output_dir']}/hierarchical_overview.txt") as f:
+    with open(f"outputs/{config['output_dir']}/hierarchical_overview.txt", encoding='utf-8') as f:
         overview = f.read()
     print("overview")
     print(overview)
     results["overview"] = overview
 
-    with open(path, "w") as file:
+    with open(path, "w", encoding='utf-8') as file:
         json.dump(results, file, indent=2, ensure_ascii=False)
     # TODO: サンプリングロジックを実装したいが、現状は全件抽出
     create_custom_intro(config)
@@ -98,10 +98,10 @@ def create_custom_intro(config):
     intro = config["intro"]
     custom_intro = base_custom_intro.format(intro=intro, processed_num=processed_num, args_count=args_count)
 
-    with open(result_path) as f:
+    with open(result_path, encoding='utf-8') as f:
         result = json.load(f)
     result["config"]["intro"] = custom_intro
-    with open(result_path, "w") as f:
+    with open(result_path, "w", encoding='utf-8') as f:
         json.dump(result, f, indent=2, ensure_ascii=False)
 
 
@@ -145,7 +145,7 @@ def add_original_comments(labels, arguments, relation_df, clusters, config):
     )
 
     # 保存
-    final_df.to_csv(f"outputs/{config['output_dir']}/final_result_with_comments.csv", index=False)
+    final_df.to_csv(f"outputs/{config['output_dir']}/final_result_with_comments.csv", index=False, encoding='utf-8-sig')
 
 
 def _build_arguments(clusters: pd.DataFrame) -> list[Argument]:

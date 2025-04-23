@@ -1,10 +1,10 @@
 import os
 
-from google import genai
 from dotenv import load_dotenv
 from pydantic import BaseModel
 
-from openai import AzureOpenAI
+from google import genai
+from openai import AzureOpenAI, OpenAI
 
 
 DOTENV_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.env"))
@@ -69,23 +69,26 @@ def request_to_gemini(
     model: str = "gemini-2.0-flash",
     is_json: bool = False,
 ) -> dict:
-    
+
     api_key = os.getenv("GEMINI_API_KEY")
-    client = genai.Client(api_key=api_key)
+
+    client = OpenAI(
+        api_key=api_key,
+        base_url="https://generativelanguage.googleapis.com/v1beta/"
+    )
 
     if is_json:
-        response_format = {
-        'response_mime_type': 'application/json',
-        'response_schema': list[Recipe],
-    }
+        response_format = {"type": "json_object"}
     else:
         response_format = None
 
-    response = client.models.generate_content(
+    response = client.chat.completions.create(
         model=model,
-        contents=messages,
-        generationConfig={'temperature': 0},
-        config=response_format
+        messages=messages,
+        temperature=0,
+        n=1,
+        response_format=response_format,
+        timeout=30,
     )
 
     return response.choices[0].message.content
@@ -122,7 +125,8 @@ def request_to_embed(args, model):
 
     else:
         _validate_model(model)
-        client = genai.Client(api_key="GEMINI_API_KEY")
+        api_key = os.getenv("GEMINI_API_KEY")
+        client = genai.Client(api_key=api_key)
         result = client.models.embed_content(
         model="gemini-embedding-exp-03-07",
         contents=args,
