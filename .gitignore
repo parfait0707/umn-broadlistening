@@ -16,6 +16,7 @@ outputs/
 secrets.toml
 .clinerules
 .python-version
+uv.lock
 
 # Data
 *.csv
