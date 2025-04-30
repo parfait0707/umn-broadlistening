@@ -151,14 +151,26 @@ class KouchouVisualization:
 
         # Update layout
         fig.update_layout(
-            title=f"Cluster Visualization (Level {target_level})",
+            title=dict(
+                text=f"Cluster Visualization (Level {target_level})",
+                y=0.98,
+                x=0.5,
+                xanchor='center',
+                yanchor='top'
+            ),
             xaxis=dict(title="", showgrid=False, zeroline=False, showticklabels=False),
             yaxis=dict(title="", showgrid=False, zeroline=False, showticklabels=False),
             showlegend=True,
             legend=dict(
-                orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1
+                orientation="h",
+                yanchor="top",
+                y=-0.15,           # <<< scatterの下に配置
+                xanchor="center",
+                x=0.5,
+                bgcolor='rgba(255,255,255,0)'  # <<< 安全のため透明背景
             ),
-            margin=dict(l=20, r=20, t=60, b=20),
+            margin=dict(l=20, r=20, t=60, b=60),  # <<< 上下マージンでバランス調整
+            height=700,                           # <<< 任意。プロット領域の見やすさ向上
             hovermode="closest",
         )
 
@@ -248,17 +260,29 @@ class KouchouVisualization:
 
         # Update layout
         fig.update_layout(
-            title=f"Dense Clusters Visualization (Density ≤ {max_density}%, Size ≥ {min_value})",
+            title=dict(
+                text=f"Dense Clusters Visualization (Density ≤ {max_density}%, Size ≥ {min_value})",
+                y=0.97,
+                x=0.5,
+                xanchor='center',
+                yanchor='top'
+            ),
             xaxis=dict(title="", showgrid=False, zeroline=False, showticklabels=False),
             yaxis=dict(title="", showgrid=False, zeroline=False, showticklabels=False),
             showlegend=True,
             legend=dict(
-                orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1
+                orientation="h",
+                yanchor="top",
+                y=-0.15,       # <<< プロットエリアの**外**にlegendを配置
+                xanchor="center",
+                x=0.5,
+                bgcolor='rgba(255,255,255,0)'  # <<< 背景透明に（安全対策）
             ),
-            margin=dict(l=20, r=20, t=60, b=20),
+            margin=dict(l=20, r=20, t=60, b=40),  # <<< 下側marginも広げる
+            height=700,
             hovermode="closest",
         )
-
+        
         return fig
 
     def create_treemap(self, root_level="all"):
@@ -387,7 +411,7 @@ class KouchouVisualization:
             [
                 dbc.Container(
                     [
-                        html.H1("Kouchou AI Visualization", className="my-4"),
+                        html.H1("Voice AI Visualization", className="my-4"),
                         # Overview
                         dbc.Card(
                             [
@@ -551,7 +575,7 @@ class KouchouVisualization:
                                     [
                                         html.Div(
                                             id="chart-container",
-                                            style={"height": "600px"},
+                                            style={"height": "700px"},
                                         )
                                     ]
                                 ),
@@ -565,40 +589,41 @@ class KouchouVisualization:
         # Store the current treemap level
         app.current_treemap_level = "all"
 
-        @app.callback(
-            [
-                Output("chart-container", "children"),
-                Output("dense-settings", "style"),
-                Output("treemap-settings", "style"),
-                Output("current-level", "children"),
-                Output("back-button", "disabled"),
-            ],
-            [
-                Input("chart-type", "value"),
-                Input("density-slider", "value"),
-                Input("min-value-slider", "value"),
-                Input("show-labels", "value"),
-                Input("back-button", "n_clicks"),
-            ],
-            [State("back-button", "disabled")],
-        )
-        def update_chart(
-            chart_type, density, min_value, show_labels, back_clicks, back_disabled
-        ):
-            ctx = dash.callback_context
-            triggered_id = (
-                ctx.triggered[0]["prop_id"].split(".")[0] if ctx.triggered else None
-            )
-
-            # Handle treemap navigation
-            if triggered_id == "back-button" and not back_disabled:
-                if app.current_treemap_level != "all":
-                    # Go up one level
-                    parts = app.current_treemap_level.split("-")
-                    if len(parts) > 1:
-                        app.current_treemap_level = "-".join(parts[:-1])
-                    else:
-                        app.current_treemap_level = "all"
+        @app.callback(  
+            [  
+                Output("chart-container", "children"),  
+                Output("dense-settings", "style"),  
+                Output("treemap-settings", "style"),  
+                Output("current-level", "children"),  
+                Output("back-button", "disabled"),  
+            ],  
+            [  
+                Input("chart-type", "value"),  
+                Input("density-slider", "value"),  
+                Input("min-value-slider", "value"),  
+                Input("show-labels", "value"),  
+                Input("back-button", "n_clicks"),  
+            ],  
+            [  
+                State("back-button", "disabled"),  
+                State("chart-type", "value"),  # Add this to track the current chart type  
+            ],  
+        )  
+        def update_chart(  
+            chart_type, density, min_value, show_labels, back_clicks, back_disabled, current_chart_type  
+        ):  
+            ctx = dash.callback_context  
+            triggered_id = ctx.triggered[0]["prop_id"].split(".")[0] if ctx.triggered else None  
+            
+            # Handle treemap navigation  
+            if triggered_id == "back-button" and not back_disabled and chart_type == "treemap":  
+                if app.current_treemap_level != "all":  
+                    # Go up one level  
+                    parts = app.current_treemap_level.split("-")  
+                    if len(parts) > 1:  
+                        app.current_treemap_level = "-".join(parts[:-1])  
+                    else:  
+                        app.current_treemap_level = "all" 
 
             # Create the appropriate chart
             if chart_type == "scatter-all":
@@ -655,19 +680,44 @@ class KouchouVisualization:
             [State("chart-type", "value")],
             prevent_initial_call=True,
         )
-        def handle_treemap_click(click_data, chart_type):
-            if chart_type != "treemap" or not click_data:
+        def handle_treemap_click(click_data, chart_type):  
+            try:  
+                if chart_type != "treemap" or not click_data:  
+                    raise dash.exceptions.PreventUpdate  
+                
+                print("Click data structure:", click_data)  
+                
+                # Extract the clicked node ID safely  
+                if "points" not in click_data or len(click_data["points"]) == 0:  
+                    print("No points data in click event")  
+                    raise dash.exceptions.PreventUpdate  
+                    
+                point = click_data["points"][0]  
+                
+                # Try different properties that might contain the ID  
+                if "label" in point:  
+                    clicked_id = point["label"]  
+                elif "curveNumber" in point and "pointNumber" in point:  
+                    # Get the label from the treemap data  
+                    point_number = point["pointNumber"]  
+                    # Use the labels from the treemap  
+                    clicked_id = self.create_treemap().data[0].labels[point_number]  
+                else:  
+                    print("Could not find ID in click data:", point)  
+                    raise dash.exceptions.PreventUpdate  
+                
+                print(f"Clicked ID: {clicked_id}")  
+                
+                # Update current level  
+                app.current_treemap_level = clicked_id  
+                
+                # Create new treemap with the clicked node as root  
+                fig = self.create_treemap(root_level=clicked_id)  
+                return fig  
+            except Exception as e:  
+                print(f"Error in treemap click handler: {e}")  
+                print(f"Click data: {click_data if 'click_data' in locals() else 'Not available'}")  
                 raise dash.exceptions.PreventUpdate
-
-            # Extract the clicked node ID
-            clicked_id = click_data["points"][0]["id"]
-
-            # Update current level
-            app.current_treemap_level = clicked_id
-
-            # Create new treemap with the clicked node as root
-            fig = self.create_treemap(root_level=clicked_id)
-            return fig
 
         # Handle fullscreen button
         @app.callback(
@@ -699,7 +749,7 @@ class KouchouVisualization:
                 return {"height": "600px"}, "Fullscreen"
 
         # Run the app
-        app.run_server(debug=False, host="0.0.0.0", port=port)
+        app.run(debug=False, host="0.0.0.0", port=port)
 
 
 def main():
