@@ -6,7 +6,8 @@ dist/
 wheels/
 *.egg-info
 hello.py
-outputs/hierarchical-example-aba/
+outputs/hierarchical-example-aba
+configs/hierarchical-example-aba
 uv.lock
 
 # Virtual environments
@@ -24,3 +25,5 @@ uv.lock
 
 # Folder
 notebooks/
+.cline/
+reporting/archive
