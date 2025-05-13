@@ -1,11 +1,13 @@
 import os
+import logging
 
 from dotenv import load_dotenv
 from pydantic import BaseModel
 
 from google import genai
+import openai
 from openai import AzureOpenAI, OpenAI
-
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
 DOTENV_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.env"))
 load_dotenv(DOTENV_PATH)
@@ -30,7 +32,11 @@ if use_azure == "true":
     if not os.getenv("AZURE_EMBEDDING_DEPLOYMENT_NAME"):
         raise RuntimeError("AZURE_EMBEDDING_DEPLOYMENT_NAME environment variable is not set")
 
-
+@retry(
+    wait=wait_exponential(multiplier=1, min=2, max=20),
+    stop=stop_after_attempt(3),
+    reraise=True,
+)
 def request_to_azure_chatcompletion(
     messages: list[dict],
     is_json: bool = False,
@@ -51,17 +57,27 @@ def request_to_azure_chatcompletion(
     else:
         response_format = None
 
-    response = client.chat.completions.create(
-        model=deployment,
-        messages=messages,
-        temperature=0,
-        n=1,
-        seed=0,
-        response_format=response_format,
-        timeout=30,
-    )
+    try:
+        response = client.chat.completions.create(
+            model=deployment,
+            messages=messages,
+            temperature=0,
+            n=1,
+            seed=0,
+            response_format=response_format,
+            timeout=30,
+        )
 
-    return response.choices[0].message.content
+        return response.choices[0].message.content
+    except openai.RateLimitError as e:
+        logging.warning(f"OpenAI API rate limit hit: {e}")
+        raise
+    except openai.AuthenticationError as e:
+        logging.error(f"OpenAI API authentication error: {str(e)}")
+        raise
+    except openai.BadRequestError as e:
+        logging.error(f"OpenAI API bad request error: {str(e)}")
+        raise
 
 # 作りかけ
 def request_to_gemini(

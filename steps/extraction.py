@@ -4,6 +4,7 @@ import logging
 import re
 
 import pandas as pd
+import numpy as np
 from tqdm import tqdm
 
 from services.category_classification import classify_args
@@ -35,6 +36,10 @@ def extraction(config):
     comments = pd.read_csv(
         f"inputs/{config['input']}.csv", usecols=["comment-id", "comment-body"] + config["extraction"]["properties"]
     )
+    # 対象カラムに空白が含まれていたら削除
+    comments["comment-body"] = comments["comment-body"].apply(lambda x: x if not isinstance(x, str) or x.strip() else np.nan)
+    comments = comments.dropna(subset="comment-body")
+    
     comment_ids = (comments["comment-id"].values)[:limit]
     comments.set_index("comment-id", inplace=True)
     results = pd.DataFrame()
@@ -121,7 +126,7 @@ def extract_batch(batch, prompt, model, workers):
 #     return response
 
 
-def extract_arguments(input, prompt, model, retries=1):
+def extract_arguments(input, prompt, model, retries=3):
     messages = [
         {"role": "system", "content": prompt},
         {"role": "user", "content": input},

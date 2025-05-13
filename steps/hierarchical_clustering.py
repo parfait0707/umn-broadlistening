@@ -53,33 +53,33 @@ def hierarchical_clustering(config):
     result_df.to_csv(path, index=False)
 
 
-# def generate_cluster_count_list(min_clusters: int, max_clusters: int):
-#     cluster_counts = []
-#     current = min_clusters
-#     cluster_counts.append(current)
+def generate_cluster_count_list(min_clusters: int, max_clusters: int):
+    cluster_counts = []
+    current = min_clusters
+    cluster_counts.append(current)
 
-#     if min_clusters == max_clusters:
-#         return cluster_counts
+    if min_clusters == max_clusters:
+        return cluster_counts
 
-#     while True:
-#         next_double = current * 2
-#         next_triple = current * 3
+    while True:
+        next_double = current * 2
+        next_triple = current * 3
 
-#         if next_double >= max_clusters:
-#             if cluster_counts[-1] != max_clusters:
-#                 cluster_counts.append(max_clusters)
-#             break
+        if next_double >= max_clusters:
+            if cluster_counts[-1] != max_clusters:
+                cluster_counts.append(max_clusters)
+            break
 
-#         # 次の倍はまだ max_clusters に収まるが、3倍だと超える
-#         # -> (次の倍は細かすぎるので)スキップして max_clusters に飛ぶ
-#         if next_triple > max_clusters:
-#             cluster_counts.append(max_clusters)
-#             break
+        # 次の倍はまだ max_clusters に収まるが、3倍だと超える
+        # -> (次の倍は細かすぎるので)スキップして max_clusters に飛ぶ
+        if next_triple > max_clusters:
+            cluster_counts.append(max_clusters)
+            break
 
-#         cluster_counts.append(next_double)
-#         current = next_double
+        cluster_counts.append(next_double)
+        current = next_double
 
-#     return cluster_counts
+    return cluster_counts
 
 
 def merge_clusters_with_hierarchy(

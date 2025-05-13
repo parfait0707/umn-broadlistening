@@ -195,23 +195,23 @@ def _build_cluster_value(melted_labels: pd.DataFrame, total_num: int) -> list[Cl
     return results
 
 
-# def _build_comments_value(
-#     comments: pd.DataFrame,
-#     arguments: pd.DataFrame,
-#     hidden_properties_map: dict[str, list[str]],
-# ):
-#     comment_dict: dict[str, dict[str, str]] = {}
-#     useful_comment_ids = set(arguments["comment-id"].values)
-#     for _, row in comments.iterrows():
-#         id = row["comment-id"]
-#         if id in useful_comment_ids:
-#             res = {"comment": row["comment-body"]}
-#             should_skip = any(row[prop] in hidden_values for prop, hidden_values in hidden_properties_map.items())
-#             if should_skip:
-#                 continue
-#             comment_dict[str(id)] = res
+def _build_comments_value(
+    comments: pd.DataFrame,
+    arguments: pd.DataFrame,
+    hidden_properties_map: dict[str, list[str]],
+):
+    comment_dict: dict[str, dict[str, str]] = {}
+    useful_comment_ids = set(arguments["comment-id"].values)
+    for _, row in comments.iterrows():
+        id = row["comment-id"]
+        if id in useful_comment_ids:
+            res = {"comment": row["comment-body"]}
+            should_skip = any(row[prop] in hidden_values for prop, hidden_values in hidden_properties_map.items())
+            if should_skip:
+                continue
+            comment_dict[str(id)] = res
 
-#     return comment_dict
+    return comment_dict
 
 
 def _build_translations(config):

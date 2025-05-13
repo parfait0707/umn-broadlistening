@@ -2,6 +2,8 @@ import streamlit as st
 import json
 import os
 import re
+import zipfile
+import io
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit.components.v1 as components
@@ -89,20 +91,27 @@ class KouchouVisualizationStreamlit:
                     x=cx, y=cy,
                     text=cluster['label'],
                     showarrow=False,
-                    font=dict(color="white", size=12, family="Arial"),
+                    font=dict(color="white", size=20, family="Arial"),  # フォントサイズを20に
                     align="center",
                     bgcolor=color,
                     borderpad=4,
                     opacity=0.9
                 )
 
+        # ホバーラベルのフォントをサイズ20に設定
+        fig.update_traces(hoverlabel=dict(font=dict(size=20, family="Arial")))
+
         fig.update_layout(
             xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
             yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(size=12)),
+            legend=dict(
+                orientation="h", yanchor="bottom", y=1.02,
+                xanchor="right", x=1,
+                font=dict(size=20)  # legend文字サイズを20に
+            ),
             margin=dict(l=20, r=20, t=20, b=20),
             hovermode="closest",
-            height=600
+            height=800
         )
         return fig
 
@@ -116,7 +125,7 @@ class KouchouVisualizationStreamlit:
                          showarrow=False, xref="paper", yref="paper", x=0.5, y=0.5)
                 ],
                 margin=dict(l=20, r=20, t=20, b=20),
-                height=600
+                height=800
             )
             return fig, True
 
@@ -149,58 +158,80 @@ class KouchouVisualizationStreamlit:
                     x=cx, y=cy,
                     text=cluster['label'],
                     showarrow=False,
-                    font=dict(color="white", size=12, family="Arial"),
+                    font=dict(color="white", size=16, family="Arial"),  # フォントサイズを20に
                     align="center",
                     bgcolor=color,
                     borderpad=4,
                     opacity=0.9
                 )
 
+        # ホバーラベルのフォントをサイズ20に設定
+        fig.update_traces(hoverlabel=dict(font=dict(size=16, family="Arial")))
+
         fig.update_layout(
             xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
             yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(size=12)),
+            legend=dict(
+                orientation="h", yanchor="bottom", y=1.02,
+                xanchor="right", x=0.5,  # legend を中央揃えにしたいなら"center"
+                font=dict(size=16)  # legend 文字サイズを20に
+            ),
             margin=dict(l=20, r=20, t=20, b=20),
             hovermode="closest",
-            height=600
+            height=800
         )
         return fig, False
 
-    def create_treemap(self, root_level="0"):
+    def create_treemap(self, root_level="0"):  # 改訂版
+        # 各ノードの情報を収集
         ids, labels, parents, values, customdata = [], [], [], [], []
         for c in self.clusters:
-            ids.append(c['id'])
+            node_id = c['id']
+            # ラベルは改行を入れて折り返し
             lbl = re.sub(r"(.{15})", r"\1<br />", c['label'])
+            # 親を設定: レベル1はルート'0'の子、それ以降は元々のparentを使う
+            lvl = c.get('level', 1)
+            if lvl == 1:
+                parent = '0'
+            else:
+                parent = c.get('parent', '')
+
+            ids.append(node_id)
             labels.append(lbl)
-            parents.append(c.get('parent', '') if c.get('level', 1) > 1 else '')
+            parents.append(parent)
             values.append(c.get('value', 0))
+            # カスタムデータも改行入り
             customdata.append(re.sub(r"(.{15})", r"\1<br />", c.get('takeaway', '')))
+
+        # ルートノード '0' を先頭に挿入
         if '0' not in ids:
+            total = sum(c.get('value', 0) for c in self.clusters if c.get('level') == 1)
             ids.insert(0, '0')
             labels.insert(0, 'All')
             parents.insert(0, '')
-            total = sum(v for c, v in zip(self.clusters, values) if c.get('level') == 1)
             values.insert(0, total)
             customdata.insert(0, 'All Clusters')
 
+        # Treemap の作成
         fig = go.Figure(go.Treemap(
             ids=ids,
             labels=labels,
             parents=parents,
             values=values,
-            hovertemplate="%{label}<br>%{value:,}件",
-            texttemplate="%{label}<br>%{value:,}件",
-            textfont=dict(size=14, family="Arial"),
             customdata=customdata,
             branchvalues="total",
-            maxdepth=2,
-            marker=dict(colors=[self.cluster_color_map.get(i.split('-')[0], '#cccccc') for i in ids])
+            hovertemplate="%{label}<br>%{value:,}件",
+            texttemplate="%{label}<br>%{value:,}件",
+            textfont=dict(size=20, family="Arial"),
+            insidetextfont=dict(size=20, family="Arial"),
+            outsidetextfont=dict(size=20, family="Arial"),
+            pathbar=dict(textfont=dict(size=20, family="Arial")),
+            hoverlabel=dict(font=dict(size=20, family="Arial")),
+            # 各ノードの色
+            marker=dict(colors=[self.cluster_color_map.get(i.split('-')[0], '#cccccc') for i in ids]),
+            maxdepth=3  # ルート→レベル1→レベル2まで表示
         ))
-
-        fig.update_layout(
-            margin=dict(l=10, r=10, t=20, b=10),
-            height=600
-        )
+        fig.update_layout(margin=dict(l=10, r=10, t=20, b=10), height=800)
         return fig
 
     def display_comments_table(self, cluster_id=None):
@@ -248,11 +279,11 @@ def load_project_data(project_name):
 
 
 def main():
-    st.set_page_config(page_title="Kouchou AI Visualization", page_icon="📊", layout="wide")
-    st.sidebar.title("Kouchou AI Visualization")
+    st.set_page_config(page_title="Customer Voice Visualization", page_icon="📊", layout="wide")
+    st.sidebar.title("Customer Voice Visualization")
     projects = find_project_folders()
     mode = 'Upload New Data' if not projects else st.sidebar.radio(
-        'Choose a mode', ['Select Existing Project', 'Upload New Data'])
+        'Choose a mode', ['Select Existing Project', 'Upload New Data (WIP)'])
     viz = None
 
     if mode == 'Select Existing Project':
@@ -362,7 +393,7 @@ def main():
                     if c['id'] == st.session_state.treemap_level:
                         lvl = f"{c['label']} (ID:{c['id']})"
                         break
-            st.sidebar.text(f"Current Level: {lvl}")
+            #st.sidebar.text(f"Current Level: {lvl}")
 
         if choice == 'Comments Table':
             opts = [('All Clusters', None)] + [
@@ -397,6 +428,7 @@ def main():
         if st.sidebar.button("Export All Visualizations"):
             out = 'kouchou_output'
             os.makedirs(out, exist_ok=True)
+            
             viz.create_scatter_chart().write_html(f"{out}/scatter_all.html")
             viz.create_scatter_dense()[0].write_html(f"{out}/scatter_dense.html")
             viz.create_treemap().write_html(f"{out}/treemap.html")
@@ -404,7 +436,27 @@ def main():
                 f.write(f"<h1>Overview</h1><p>{viz.overview}</p>")
             if viz.comments_df is not None:
                 viz.comments_df.to_csv(f"{out}/comments.csv", index=False)
-            st.sidebar.success(f"Exported to {out}/")
+                
+            # ZIPにまとめる
+            zip_buffer = io.BytesIO()
+            with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+                for root, _, files in os.walk(out):
+                    for file in files:
+                        file_path = os.path.join(root, file)
+                        arcname = os.path.relpath(file_path, start=out)
+                        zip_file.write(file_path, arcname=arcname)
+
+            zip_buffer.seek(0)  # バッファの先頭に戻す
+            
+            # ダウンロードボタン
+            st.sidebar.download_button(
+                label="Download ZIP",
+                data=zip_buffer,
+                file_name="kouchou_export.zip",
+                mime="application/zip"
+            )
+            st.sidebar.success("ZIP file ready for download.")
+        
     else:
         st.info("Please select or upload data to begin.")
         st.markdown(
@@ -428,3 +480,4 @@ def plotly_events(fig, **kwargs):
 
 if __name__ == "__main__":
     main()
+
