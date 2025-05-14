@@ -40,6 +40,9 @@ def extraction(config):
     comments["comment-body"] = comments["comment-body"].apply(lambda x: x if not isinstance(x, str) or x.strip() else np.nan)
     comments = comments.dropna(subset="comment-body")
     
+    # 対象カラムに重複の情報が含まれていたら削除
+    comments = comments.drop_duplicates("comment-body", keep='first')
+    
     comment_ids = (comments["comment-id"].values)[:limit]
     comments.set_index("comment-id", inplace=True)
     results = pd.DataFrame()
